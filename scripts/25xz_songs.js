@@ -14,17 +14,16 @@ mysqlConn.connect();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Init Data
-var albumIdx = 26, // 专辑序列
-  songIdx = 7, // 歌曲序列
-  retryTimes = 0; // 超时重新尝试次数
+var albumIdx = 478, // 专辑序列
+  songIdx = 8, // 歌曲序列
+  req_timer,
+  res_timer;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Get page content function
 function getPageContent(url, success, error) {
-  http.get(url, function(res) {
-    retryTimes = 0;
-
+  req = http.get(url, function(res) {
     var statusCode = res.statusCode,
       buffers = [];
 
@@ -32,37 +31,56 @@ function getPageContent(url, success, error) {
     if (statusCode == 200) {
       res.on('data', function(trunk) {
         buffers.push(trunk);
-      });
-      res.on('end', function() {
+      }).on('end', function() {
         var buffer = iconv.decode(Buffer.concat(buffers), 'gb2312'),
           content = buffer.toString();
+
+        // Destroy response
+        res.destroy();
+
+        // Success callback
         success(content);
       });
     } else {
+      // Destroy response
+      res.destroy();
+
+      // Error callback
       error();
     }
 
-  }).on('error', function(e) {
+    // Handle response timeout
+    res.setTimeout(10000);
+
+  }).on('error', function() {
     process.stdout.write('\x07');
-    
-    if (retryTimes < 3) {
-      retryTimes++;
-      craw();
-    } else {
-      songIdx++;
-      craw();
-    }
+    console.log('[Warning]: Request error');
+
+    // Abort request
+    req.abort();
+
+    songIdx++;
+    craw();
   });
+
+  // Handle request timeout
+  // req.setTimeout(10000, function() {
+  //   process.stdout.write('\x07');
+  //   console.log('[Warning]: Request timeout');
+
+  //   req.abort();
+  //   songIdx++;
+  //   craw();
+  // });
 }
 
 // Add an item into the table
 function addToTable(query, success) {
-  console.log(query);
+  console.log('[Log]: ' + query);
   mysqlConn.query(query, function(err, rows, fields) {
-    if (err) {
-      throw err;
-    }
-    console.log('Successfully add an item');
+    // if (err) {
+    //   throw err;
+    // }
     success();
   });
 };
@@ -70,11 +88,11 @@ function addToTable(query, success) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 function craw() {
-  console.log('try crawling: ' + albumIdx + '.' + songIdx);
+  console.log('\n[Log]: Try crawling: ' + albumIdx + '.' + songIdx);
 
   var album_link = 'http://www.25xz.com/MusicList/cococmp3.cn_' + albumIdx + '.html';
   getPageContent(album_link, function(album_pageContent) {
-    console.log('Successfully access url: ' + album_link);
+    console.log('[Success]: access url: ' + album_link);
 
     var $ = cheerio.load(album_pageContent),
       $a = $('#albumSongs').find('tr').eq(songIdx).children('td').eq(2).children('a');
@@ -87,11 +105,13 @@ function craw() {
         artist = $imlist.children('dd').eq(1).children('a').eq(0).text(),
         source = '中国藏族音乐网';
       getPageContent(player_link, function(player_pageContent) {
-        console.log('Successfully access url: ' + player_link);
+        console.log('[Success]: access url: ' + player_link);
 
         var $ = cheerio.load(player_pageContent),
-          source_link = 'http://bama.25xz.com/' + $('.w335x64').find('script').html().replace(/^(?:var)\sr_url\s=\s\"/, '').replace(/\?.+$/, '');
+          source_link = 'http://bama.25xz.com/' + $('.Play').find('script').html().replace(/^(?:var)\sr_url\s=\s\"/, '').replace(/\?.+$/, '');
         addToTable('INSERT INTO himalayan_songs (song, artist, album, source, source_link) values ("' + song + '","' + artist + '","' + album + '","' + source + '", "' + source_link + '")', function() {
+          console.log('[Success]: add an item');
+
           songIdx++;
           craw();
         });
