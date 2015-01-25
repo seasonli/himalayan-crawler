@@ -1,0 +1,14 @@
+{
+  "name": "himalayan-crawler",
+  "version": "0.0.1",
+  "author": "LiJijun @ season.chopsticks@gmail.com",
+  "repository": {
+    "type": "git"
+  },
+  "devDependencies": {},
+  "dependencies": {
+    "cheerio": "^0.18.0",
+    "iconv-lite": "^0.4.6",
+    "mysql": "^2.5.4"
+  }
+}
