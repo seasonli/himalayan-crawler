@@ -1,3 +1,9 @@
+/**
+ * @Fileoverview 25xz_songs crawler
+ * @Author LiJijun | season.chopsticks@gmail.com
+ * @Version 1.0 | 2015-01-27 | LiJijun    // Initial version
+ **/
+
 // Require
 var iconv = require('iconv-lite'),
   http = require('http'),
