@@ -1,7 +1,7 @@
 /**
  * @Fileoverview 25xz_songs crawler
  * @Author LiJijun | season.chopsticks@gmail.com
- * @Version 1.0 | 2015-01-27 | LiJijun    // Initial version
+ * @Version 1.0 | 2015-01-25 | LiJijun    // Initial version
  **/
 
 // Require
@@ -20,8 +20,8 @@ mysqlConn.connect();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Init Data
-var albumIdx = 478, // 专辑序列
-  songIdx = 8; // 歌曲序列
+var albumIdx = 2045, // 专辑序列
+  songIdx = 1; // 歌曲序列
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -31,9 +31,9 @@ function getPageContent(url, success, error) {
     res;
 
   // Handle request timeout
-  req.setTimeout(10000, function() {
+  req.setTimeout(30000, function() {
     process.stdout.write('\x07');
-    console.warn('[Warning]  Request timeout ' + JSON.stringify({
+    console.log('[Warning]  Request timeout ' + JSON.stringify({
       url: url
     }));
     req.abort();
