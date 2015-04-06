@@ -1,6 +1,5 @@
-#
+# Directory
 node_modules/
-_release/
 
-# 
+# Files
 .DS_Store
